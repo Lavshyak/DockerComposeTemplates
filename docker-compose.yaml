@@ -1,0 +1,35 @@
+﻿services:
+  postgres:
+    hostname: "mainDB"
+    image: postgres:16.2
+    environment:
+      POSTGRES_DB: "mainDB"
+      POSTGRES_USER: "IAmPostgresUser"
+      POSTGRES_PASSWORD: "qwF34$%asdfgh"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    ports:
+      - "9110:5432"
+    #volumes:
+    #  - mainDb_storage:/var/lib/postgresql/data
+  
+  aspnet_server:
+    hostname: "main_webapi_server"
+    
+    #labels:
+    #  com.jetbrains.rider.fast.mode: "false"
+    
+    build:
+      context: .
+      dockerfile: ProjectDir/Dockerfile
+    
+    environment:
+      ASPNETCORE_URLS: http://+:80
+      ConnectionStrings__mainDb: '
+        Host=mainDb;
+        Port=5432;
+        Database=mainDb;
+        Username=IAmPostgresUser;
+        Password=qwF34$%asdfgh;
+        '
+    ports:
+      - "9111:80"
