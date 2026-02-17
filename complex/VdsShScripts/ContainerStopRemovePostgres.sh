@@ -1,0 +1,2 @@
+docker container stop solutionname-postgresMainDb_prod-1
+docker container rm solutionname-postgresMainDb_prod-1

@@ -1,0 +1,1 @@
+docker volume rm solutionname_minio_storage

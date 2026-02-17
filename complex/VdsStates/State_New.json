@@ -1,0 +1,17 @@
+{
+  "ContainerStopRemove": {
+    "Nigginx": 15,
+    "WebApi": 15,
+    "Postgres": 15,
+    "Minio": 15
+  },
+  "ImageRemove": {
+    "Nigginx": 15,
+    "WebApi": 43
+  },
+  "VolumeRemove": {
+    "WebApi": 15,
+    "Minio": 15,
+    "Postgres": 15
+  }
+}

@@ -1,0 +1,66 @@
+﻿services:
+  nigginx_dev:
+    extends:
+      file: docker-compose.raw.yml
+      service: nigginx_raw
+    ports:
+      - "1488:80"
+    volumes:
+      - ./Nigginx/default.local.conf:/etc/nginx/conf.d/default.conf:ro
+    #depends_on:
+  
+  minio_dev:
+    extends:
+      file: docker-compose.raw.yml
+      service: minio_raw
+  
+  postgresMainDb_dev:
+    extends:
+      file: docker-compose.raw.yml
+      service: postgresMainDb_raw
+
+  main_server_debugfastmode:
+    extends:
+      file: docker-compose.raw.yml
+      service: main_server_raw
+    
+    ports:
+      - "8081:80"
+    
+    depends_on:
+      - minio_dev
+      - postgresMainDb_dev
+    
+    labels:
+      com.jetbrains.rider.fast.mode: "true"
+
+    build:
+      args:
+        BUILD_CONFIGURATION: Debug
+
+    environment:
+      FeatureManagement_StagingThings: true
+      ASPNETCORE_ENVIRONMENT: Development
+      CustomWorkingDir: "/data"
+      AssemblyDirectoryPath: "/app/bin/Debug/net8.0"
+      #override
+      ConnectionStrings__AP.MainDb: '
+            Host=$ENV_POSTGRES_HOST_NAME;
+            Port=$ENV_POSTGRES_MAIN_DB_INTERNAL_PORT;
+            Database=$ENV_POSTGRES_MAIN_DB_DBNAME;
+            Username=$ENV_POSTGRES_MAIN_DB_USER;
+            Password=$ENV_POSTGRES_MAIN_DB_PASSWORD;
+            Include Error Detail=true
+            '
+    volumes:
+      #- main_server_storage:/app/bin/Debug/net8.0/data
+      #- ./[ProjectDir]/ExtraConfigs/:/app/ExtraConfigs/:ro
+      #- ./[ProjectDir]/bin/Debug/net8.0/data:/app/bin/Debug/net8.0/data:rw
+      #- main_server_storage:/app/bin/Debug/net8.0/data/:rw
+      - main_server_storage:/data
+
+
+volumes:
+  minio_storage:
+  main_server_storage:
+  postgresMainDb_storage:

@@ -1,0 +1,1 @@
+docker image rm solutionname-main_server_prod

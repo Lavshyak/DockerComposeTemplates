@@ -1,0 +1,80 @@
+﻿services:
+  nigginx_raw:
+    hostname: $ENV_NIGGINX_HOST_NAME
+    
+    build:
+      context: .
+      dockerfile: Nigginx/Dockerfile
+
+  postgresMainDb_raw:
+    hostname: $ENV_POSTGRES_HOST_NAME
+    image: postgres:16.2
+    environment:
+      POSTGRES_DB: $ENV_POSTGRES_MAIN_DB_DBNAME
+      POSTGRES_USER: $ENV_POSTGRES_MAIN_DB_USER
+      POSTGRES_PASSWORD: $ENV_POSTGRES_MAIN_DB_PASSWORD
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    ports:
+      - "$ENV_POSTGRES_MAIN_DB_EXTERNAL_PORT:$ENV_POSTGRES_MAIN_DB_INTERNAL_PORT" #9110:5432
+    volumes:
+      - postgresMainDb_storage:/var/lib/postgresql/data
+  
+  main_server_raw:
+    hostname: main_server
+    
+    labels:
+      com.jetbrains.rider.fast.mode: "false"
+    dns:
+      - 8.8.8.8
+    
+    build:
+      context: .
+      dockerfile: AcceleratorPlatform.Backend.WebApi/Dockerfile
+    
+    environment:
+      UseExtraConfigs: true
+      ASPNETCORE_URLS: http://+:80
+      Minio__MINIO_NOTIFY_WEBHOOK_AUTH_TOKEN: $ENV_MINIO_NOTIFY_WEBHOOK_AUTH_TOKEN_F
+      Minio__accessKey: $ENV_MINIO_ROOT_USER
+      Minio__secretKey: $ENV_MINIO_ROOT_PASSWORD
+      Minio__BaseUrl: "$ENV_MINIO_HOSTNAME:$ENV_MINIO_API_INTERNAL_PORT"
+      ConnectionStrings__AP.MainDb: '
+      Host=$ENV_POSTGRES_HOST_NAME;
+      Port=$ENV_POSTGRES_MAIN_DB_INTERNAL_PORT;
+      Database=$ENV_POSTGRES_MAIN_DB_DBNAME;
+      Username=$ENV_POSTGRES_MAIN_DB_USER;
+      Password=$ENV_POSTGRES_MAIN_DB_PASSWORD;
+      '
+      ConnectionStrings__AP.DataProtectionKeysDb: '
+      Host=$ENV_POSTGRES_DATA_PROTECTION_KEYS_DB_HOST_NAME;
+      Port=$ENV_POSTGRES_DATA_PROTECTION_KEYS_DB_INTERNAL_PORT;
+      Database=$ENV_POSTGRES_DATA_PROTECTION_KEYS_DB_DBNAME;
+      Username=$ENV_POSTGRES_DATA_PROTECTION_KEYS_DB_USER;
+      Password=$ENV_POSTGRES_DATA_PROTECTION_KEYS_DB_PASSWORD;
+      '
+    #ports:
+    #  - "8081:80"
+  
+  minio_raw:
+    hostname: $ENV_MINIO_HOSTNAME
+    image: minio/minio:RELEASE.2024-03-05T04-48-44Z
+    command: server --console-address ":$ENV_MINIO_CONSOLE_INTERNAL_PORT" /data/
+    ports:
+      - "$ENV_MINIO_API_EXTERNAL_PORT:$ENV_MINIO_API_INTERNAL_PORT"
+      - "$ENV_MINIO_CONSOLE_EXTERNAL_PORT:$ENV_MINIO_CONSOLE_INTERNAL_PORT"
+    environment:
+      MINIO_ROOT_USER: $ENV_MINIO_ROOT_USER
+      MINIO_ROOT_PASSWORD: $ENV_MINIO_ROOT_PASSWORD
+
+      MINIO_NOTIFY_WEBHOOK_ENABLE_F: "on"
+      MINIO_NOTIFY_WEBHOOK_ENDPOINT_F: $ENV_MINIO_NOTIFY_WEBHOOK_ENDPOINT_F
+      MINIO_NOTIFY_WEBHOOK_AUTH_TOKEN_F: $ENV_MINIO_NOTIFY_WEBHOOK_AUTH_TOKEN_F
+
+    volumes:
+      - minio_storage:/data
+
+
+volumes:
+  minio_storage:
+  main_server_storage:
+  postgresMainDb_storage:

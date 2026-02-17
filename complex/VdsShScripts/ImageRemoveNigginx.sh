@@ -1,0 +1,1 @@
+docker image rm solutionname-nigginx_prod
