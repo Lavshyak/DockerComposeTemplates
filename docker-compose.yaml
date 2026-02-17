@@ -21,6 +21,8 @@
     build:
       context: .
       dockerfile: ProjectDir/Dockerfile
+      #args:
+      #  BUILD_CONFIGURATION: "Development"
     
     environment:
       ASPNETCORE_URLS: http://+:80
