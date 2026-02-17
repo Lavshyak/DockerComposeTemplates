@@ -18,6 +18,8 @@
     #labels:
     #  com.jetbrains.rider.fast.mode: "false"
     
+    image: aspnet_server_1:0.0.1
+    
     build:
       context: .
       dockerfile: ProjectDir/Dockerfile
